@@ -1,17 +1,3 @@
-import pandas as pd
-import os
-from flask import Flask, request, jsonify
-
-app = Flask(__name__)
-
-# Créer un dossier pour stocker temporairement les fichiers téléchargés
-if not os.path.exists('uploads'):
-    os.makedirs('uploads')
-
-@app.route('/')
-def home():
-    return 'API Analyse des Tickets - Utilisez /generate-sorted-analysis pour envoyer des fichiers Excel.'
-
 @app.route('/generate-sorted-analysis', methods=['POST'])
 def generate_sorted_analysis():
     try:
@@ -36,10 +22,13 @@ def generate_sorted_analysis():
         # Fusionner les deux DataFrames
         merged_df = pd.concat([non_archives_df, archives_df])
 
-        # Nettoyer les noms de colonnes en supprimant les espaces avant et après
+        # Afficher les colonnes dans les logs
+        print(merged_df.columns)  # Affiche les noms des colonnes
+
+        # Nettoyer les noms de colonnes
         merged_df.columns = merged_df.columns.str.strip()
 
-        # Vérifier si la colonne 'Créé le' existe après avoir nettoyé les colonnes
+        # Vérifier si la colonne 'Créé le' existe après nettoyage
         if 'Créé le' not in merged_df.columns:
             return jsonify({'error': "La colonne 'Créé le' est manquante dans les fichiers Excel"}), 400
 
@@ -58,7 +47,3 @@ def generate_sorted_analysis():
     except Exception as e:
         # Retourner un message d'erreur avec l'exception capturée
         return jsonify({'error': str(e)}), 500
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
