@@ -36,15 +36,15 @@ def generate_sorted_analysis():
         # Fusionner les deux DataFrames
         merged_df = pd.concat([non_archives_df, archives_df])
 
-        # Vérifier si la colonne 'créé le' existe
-        if 'créé le' not in merged_df.columns:
-            return jsonify({'error': "La colonne 'créé le' est manquante dans les fichiers Excel"}), 400
+        # Vérifier si la colonne 'Créé le' existe
+        if 'Créé le' not in merged_df.columns:
+            return jsonify({'error': "La colonne 'Créé le' est manquante dans les fichiers Excel"}), 400
 
-        # Convertir la colonne 'créé le' en format date (si nécessaire)
-        merged_df['créé le'] = pd.to_datetime(merged_df['créé le'], errors='coerce')
+        # Convertir la colonne 'Créé le' en format date (si nécessaire)
+        merged_df['Créé le'] = pd.to_datetime(merged_df['Créé le'], errors='coerce')
 
-        # Trier le DataFrame fusionné par la colonne 'créé le'
-        sorted_df = merged_df.sort_values(by='créé le')
+        # Trier le DataFrame fusionné par la colonne 'Créé le'
+        sorted_df = merged_df.sort_values(by='Créé le')
 
         # Sauvegarder le DataFrame trié dans un nouveau fichier Excel
         sorted_output_path = os.path.join('uploads', 'sorted_analysis_tickets.xlsx')
