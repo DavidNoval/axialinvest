@@ -36,7 +36,10 @@ def generate_sorted_analysis():
         # Fusionner les deux DataFrames
         merged_df = pd.concat([non_archives_df, archives_df])
 
-        # Vérifier si la colonne 'Créé le' existe
+        # Nettoyer les noms de colonnes en supprimant les espaces avant et après
+        merged_df.columns = merged_df.columns.str.strip()
+
+        # Vérifier si la colonne 'Créé le' existe après avoir nettoyé les colonnes
         if 'Créé le' not in merged_df.columns:
             return jsonify({'error': "La colonne 'Créé le' est manquante dans les fichiers Excel"}), 400
 
