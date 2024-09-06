@@ -7,6 +7,12 @@ app = Flask(__name__)
 if not os.path.exists('uploads'):
     os.makedirs('uploads')
 
+# Route racine pour éviter l'erreur 404 et afficher un message d'accueil
+@app.route('/')
+def home():
+    return 'API Analyse des Tickets - Utilisez /generate-sorted-analysis pour envoyer des fichiers.'
+
+# Route pour traiter les fichiers envoyés et générer le document sorted_analysis_tickets
 @app.route('/generate-sorted-analysis', methods=['POST'])
 def generate_sorted_analysis():
     # Vérifier si les fichiers sont présents dans la requête
@@ -27,4 +33,6 @@ def generate_sorted_analysis():
     return jsonify({'message': 'Document sorted_analysis_tickets généré avec succès.'}), 200
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    # Utiliser la variable d'environnement PORT définie par Render ou 5000 par défaut
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
