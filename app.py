@@ -1,3 +1,18 @@
+import pandas as pd
+import os
+import tempfile
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+# Créer un dossier pour stocker temporairement les fichiers téléchargés
+if not os.path.exists('uploads'):
+    os.makedirs('uploads')
+
+@app.route('/')
+def home():
+    return 'API Analyse des Tickets - Utilisez /generate-sorted-analysis pour envoyer des fichiers Excel.'
+
 @app.route('/generate-sorted-analysis', methods=['POST'])
 def generate_sorted_analysis():
     try:
@@ -22,28 +37,32 @@ def generate_sorted_analysis():
         # Fusionner les deux DataFrames
         merged_df = pd.concat([non_archives_df, archives_df])
 
-        # Afficher les colonnes dans les logs
-        print(merged_df.columns)  # Affiche les noms des colonnes
-
         # Nettoyer les noms de colonnes
         merged_df.columns = merged_df.columns.str.strip()
 
-        # Vérifier si la colonne 'Créé le' existe après nettoyage
+        # Vérifier si la colonne 'Créé le' existe
         if 'Créé le' not in merged_df.columns:
             return jsonify({'error': "La colonne 'Créé le' est manquante dans les fichiers Excel"}), 400
 
-        # Convertir la colonne 'Créé le' en format date (si nécessaire)
+        # Convertir la colonne 'Créé le' en format date
         merged_df['Créé le'] = pd.to_datetime(merged_df['Créé le'], errors='coerce')
 
         # Trier le DataFrame fusionné par la colonne 'Créé le'
         sorted_df = merged_df.sort_values(by='Créé le')
 
-        # Sauvegarder le DataFrame trié dans un nouveau fichier Excel
-        sorted_output_path = os.path.join('uploads', 'sorted_analysis_tickets.xlsx')
-        sorted_df.to_excel(sorted_output_path, index=False, engine='openpyxl')
+        # Utiliser un fichier temporaire pour sauvegarder le fichier trié
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx') as tmp:
+            sorted_df.to_excel(tmp.name, index=False, engine='openpyxl')
+
+        # Optionnel: Vous pouvez déplacer le fichier temporaire dans 'uploads' si nécessaire
+        output_path = os.path.join('uploads', 'sorted_analysis_tickets.xlsx')
+        os.rename(tmp.name, output_path)
 
         return jsonify({'message': 'Document sorted_analysis_tickets généré avec succès.'}), 200
 
     except Exception as e:
-        # Retourner un message d'erreur avec l'exception capturée
         return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
